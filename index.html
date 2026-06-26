@@ -2,52 +2,38 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>📸 CamRename</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #0a0a0a;
+            background: #000;
             color: #fff;
             font-family: 'Segoe UI', sans-serif;
-            min-height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
 
-        h1 { font-size: 1.8rem; margin-bottom: 20px; letter-spacing: 2px; color: #f0f0f0; }
-        h1 span { color: #00d4ff; }
-
-        #app {
-            width: 100%;
-            max-width: 480px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
-
+        /* ── Vidéo prend tout l'espace dispo ── */
         #camera-container {
             position: relative;
-            width: 100%;
-            border-radius: 16px;
+            flex: 1;
             overflow: hidden;
-            background: #111;
-            box-shadow: 0 0 40px rgba(0, 212, 255, 0.15);
+            background: #000;
         }
 
         #video {
             width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
-            border-radius: 16px;
             transform: translateZ(0);
-            image-rendering: auto;
         }
 
+        /* Coins viseur */
         #camera-container::before,
         #camera-container::after {
             content: '';
@@ -60,13 +46,13 @@
         }
 
         #camera-container::before {
-            top: 12px; left: 12px;
+            top: 16px; left: 16px;
             border-width: 3px 0 0 3px;
             border-radius: 4px 0 0 0;
         }
 
         #camera-container::after {
-            bottom: 12px; right: 12px;
+            bottom: 16px; right: 16px;
             border-width: 0 3px 3px 0;
             border-radius: 0 0 4px 0;
         }
@@ -77,16 +63,20 @@
             background: white;
             opacity: 0;
             pointer-events: none;
-            border-radius: 16px;
             transition: opacity 0.05s;
         }
 
+        /* ── Barre de contrôles FIXE en bas ── */
         .controls {
+            flex-shrink: 0;
+            height: 110px;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 24px;
-            width: 100%;
+            gap: 40px;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         #btn-capture {
@@ -98,13 +88,12 @@
             cursor: pointer;
             position: relative;
             transition: transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 24px rgba(0, 212, 255, 0.5);
             flex-shrink: 0;
         }
 
         #btn-capture:active {
-            transform: scale(0.92);
-            box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
+            transform: scale(0.90);
         }
 
         #btn-capture::after {
@@ -116,10 +105,10 @@
         }
 
         #btn-flip {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.12);
             border: 2px solid rgba(255,255,255,0.3);
             color: #fff;
             font-size: 1.4rem;
@@ -130,19 +119,33 @@
             justify-content: center;
         }
 
-        #btn-flip:hover { background: rgba(255,255,255,0.2); }
+        #btn-flip:active { background: rgba(255,255,255,0.25); }
 
         #canvas { display: none; }
 
+        /* ── Erreur caméra ── */
+        #no-camera {
+            display: none;
+            position: absolute;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #ff6b6b;
+            padding: 40px;
+            font-size: 1rem;
+        }
+
+        /* ── Modal ── */
         #modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.88);
             z-index: 100;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
         }
 
         #modal-overlay.show { display: flex; }
@@ -151,13 +154,13 @@
             background: #1a1a2e;
             border: 1px solid #00d4ff44;
             border-radius: 20px;
-            padding: 28px 24px;
-            width: 90%;
+            padding: 24px;
+            width: 92%;
             max-width: 400px;
             box-shadow: 0 0 60px rgba(0, 212, 255, 0.2);
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 18px;
             animation: popIn 0.25s ease;
         }
 
@@ -170,15 +173,19 @@
             width: 100%;
             border-radius: 12px;
             object-fit: cover;
-            max-height: 220px;
+            max-height: 200px;
         }
 
-        #modal h2 { font-size: 1.1rem; color: #ccc; text-align: center; }
+        #modal h2 {
+            font-size: 1.1rem;
+            color: #ccc;
+            text-align: center;
+        }
 
         .input-group { display: flex; flex-direction: column; gap: 8px; }
 
         .input-group label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -211,7 +218,6 @@
             color: #00d4ff;
             font-size: 0.9rem;
             border-left: 1px solid #333;
-            white-space: nowrap;
         }
 
         .modal-actions { display: flex; gap: 12px; }
@@ -229,21 +235,20 @@
 
         .btn:active { transform: scale(0.97); }
         .btn-cancel { background: #2a2a2a; color: #aaa; }
-        .btn-cancel:hover { background: #333; }
         .btn-save { background: linear-gradient(135deg, #00d4ff, #0080ff); color: #fff; }
-        .btn-save:hover { opacity: 0.9; }
 
+        /* ── Toast ── */
         #toast {
             position: fixed;
-            bottom: 30px;
+            bottom: 130px;
             left: 50%;
-            transform: translateX(-50%) translateY(20px);
+            transform: translateX(-50%) translateY(10px);
             background: #1e1e1e;
             border: 1px solid #00d4ff55;
             color: #fff;
-            padding: 12px 22px;
+            padding: 10px 20px;
             border-radius: 50px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
             white-space: nowrap;
@@ -254,69 +259,55 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
-
-        #no-camera {
-            display: none;
-            text-align: center;
-            color: #ff6b6b;
-            padding: 40px 20px;
-        }
-
-        @media (max-width: 360px) {
-            h1 { font-size: 1.4rem; }
-            #btn-capture { width: 64px; height: 64px; }
-        }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <h1>📸 Cam<span>Rename</span></h1>
-
+    <!-- Caméra -->
     <div id="camera-container">
         <video id="video" autoplay playsinline></video>
         <div id="flash"></div>
-    </div>
-
-    <div id="no-camera">
-        <p>⚠️ Impossible d'accéder à la caméra.<br>Vérifiez les permissions de votre navigateur.</p>
+        <div id="no-camera">
+            ⚠️ Impossible d'accéder à la caméra.<br>Vérifiez les permissions.
+        </div>
     </div>
 
     <canvas id="canvas"></canvas>
 
+    <!-- Barre boutons collée en bas -->
     <div class="controls">
-        <button id="btn-flip" title="Retourner la caméra">🔄</button>
-        <button id="btn-capture" title="Prendre une photo"></button>
-        <div style="width:48px"></div>
+        <button id="btn-flip">🔄</button>
+        <button id="btn-capture"></button>
+        <div style="width:50px"></div>
     </div>
-</div>
 
-<div id="modal-overlay">
-    <div id="modal">
-        <h2>📝 Nommer la photo</h2>
-        <img id="preview-img" src="" alt="Aperçu">
-        <div class="input-group">
-            <label>Nom du fichier</label>
-            <div class="input-wrapper">
-                <input
-                    id="filename-input"
-                    type="text"
-                    placeholder="ma_super_photo"
-                    maxlength="100"
-                    autocomplete="off"
-                    spellcheck="false"
-                >
-                <span class="ext-badge">.jpg</span>
+    <!-- Modal nommage -->
+    <div id="modal-overlay">
+        <div id="modal">
+            <h2>📝 Nommer la photo</h2>
+            <img id="preview-img" src="" alt="Aperçu">
+            <div class="input-group">
+                <label>Nom du fichier</label>
+                <div class="input-wrapper">
+                    <input
+                        id="filename-input"
+                        type="text"
+                        placeholder="ma_super_photo"
+                        maxlength="100"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <span class="ext-badge">.jpg</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" id="btn-cancel">Annuler</button>
+                <button class="btn btn-save" id="btn-save">💾 Enregistrer</button>
             </div>
         </div>
-        <div class="modal-actions">
-            <button class="btn btn-cancel" id="btn-cancel">Annuler</button>
-            <button class="btn btn-save"   id="btn-save">💾 Enregistrer</button>
-        </div>
     </div>
-</div>
 
-<div id="toast"></div>
+    <div id="toast"></div>
 
 <script>
     const state = {
@@ -338,12 +329,10 @@
     const toast         = document.getElementById('toast');
     const noCameraMsg   = document.getElementById('no-camera');
 
-    /* ── Démarrer la caméra ── */
     async function startCamera(facingMode = 'environment') {
         if (state.stream) {
             state.stream.getTracks().forEach(t => t.stop());
         }
-
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
@@ -353,35 +342,25 @@
                 },
                 audio: false,
             });
-
             state.stream = stream;
             video.srcObject = stream;
-            video.style.display = 'block';
             noCameraMsg.style.display = 'none';
-
         } catch (err) {
-            console.error('Erreur caméra :', err);
-            video.style.display = 'none';
-            noCameraMsg.style.display = 'block';
+            console.error(err);
+            noCameraMsg.style.display = 'flex';
         }
     }
 
-    /* ── Capturer la photo en vraie résolution ── */
     function capturePhoto() {
         const track    = state.stream?.getVideoTracks()[0];
         const settings = track?.getSettings();
-
         const w = settings?.width  || video.videoWidth;
         const h = settings?.height || video.videoHeight;
 
-        if (!w || !h) {
-            showToast('⚠️ La caméra n\'est pas encore prête');
-            return;
-        }
+        if (!w || !h) { showToast('⚠️ Caméra pas encore prête'); return; }
 
         canvas.width  = w;
         canvas.height = h;
-
         const ctx = canvas.getContext('2d');
 
         if (state.facingMode === 'user') {
@@ -390,35 +369,21 @@
         }
 
         ctx.drawImage(video, 0, 0, w, h);
-
-        // Qualité 0.95 pour réduire la compression
         state.capturedDataURL = canvas.toDataURL('image/jpeg', 0.95);
 
-        triggerFlash();
+        flash.style.opacity = '1';
+        setTimeout(() => { flash.style.opacity = '0'; }, 120);
+
         openModal();
     }
 
-    /* ── Flash ── */
-    function triggerFlash() {
-        flash.style.opacity = '1';
-        setTimeout(() => { flash.style.opacity = '0'; }, 120);
-    }
-
-    /* ── Modal ── */
     function openModal() {
         previewImg.src = state.capturedDataURL;
-
-        const now  = new Date();
-        const pad  = n => String(n).padStart(2, '0');
-        const defaultName = `photo_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-
-        filenameInput.value = defaultName;
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        filenameInput.value = `photo_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
         modalOverlay.classList.add('show');
-
-        setTimeout(() => {
-            filenameInput.focus();
-            filenameInput.select();
-        }, 260);
+        setTimeout(() => { filenameInput.focus(); filenameInput.select(); }, 260);
     }
 
     function closeModal() {
@@ -427,60 +392,41 @@
         previewImg.src = '';
     }
 
-    /* ── Enregistrer ── */
     function savePhoto() {
         let name = filenameInput.value.trim();
-
-        if (!name) {
-            filenameInput.focus();
-            return;
-        }
-
+        if (!name) { filenameInput.focus(); return; }
         name = name.replace(/[\\/:*?"<>|]/g, '_');
-
         const link = document.createElement('a');
-        link.href     = state.capturedDataURL;
+        link.href = state.capturedDataURL;
         link.download = `${name}.jpg`;
         link.click();
-
         closeModal();
-        showToast(`✅ Photo enregistrée : ${name}.jpg`);
+        showToast(`✅ ${name}.jpg enregistré`);
     }
 
-    /* ── Toast ── */
     let toastTimer = null;
-
-    function showToast(message, duration = 3000) {
-        toast.textContent = message;
+    function showToast(msg, duration = 3000) {
+        toast.textContent = msg;
         toast.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            toast.classList.remove('show');
-        }, duration);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
     }
 
-    /* ── Flip caméra ── */
     function flipCamera() {
         state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
         startCamera(state.facingMode);
     }
 
-    /* ── Événements ── */
     btnCapture.addEventListener('click', capturePhoto);
     btnFlip.addEventListener('click', flipCamera);
     btnSave.addEventListener('click', savePhoto);
     btnCancel.addEventListener('click', closeModal);
-
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-    });
-
-    filenameInput.addEventListener('keydown', (e) => {
+    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+    filenameInput.addEventListener('keydown', e => {
         if (e.key === 'Enter') savePhoto();
         if (e.key === 'Escape') closeModal();
     });
 
-    /* ── Lancement ── */
     startCamera(state.facingMode);
 </script>
 
