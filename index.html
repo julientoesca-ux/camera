@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📸 CamRename</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background: #0a0a0a;
@@ -22,18 +18,9 @@
             justify-content: center;
         }
 
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            color: #f0f0f0;
-        }
+        h1 { font-size: 1.8rem; margin-bottom: 20px; letter-spacing: 2px; color: #f0f0f0; }
+        h1 span { color: #00d4ff; }
 
-        h1 span {
-            color: #00d4ff;
-        }
-
-        /* ── Conteneur principal ── */
         #app {
             width: 100%;
             max-width: 480px;
@@ -44,7 +31,6 @@
             gap: 16px;
         }
 
-        /* ── Viewfinder ── */
         #camera-container {
             position: relative;
             width: 100%;
@@ -58,9 +44,10 @@
             width: 100%;
             display: block;
             border-radius: 16px;
+            transform: translateZ(0);
+            image-rendering: auto;
         }
 
-        /* Coin décoratif façon viseur */
         #camera-container::before,
         #camera-container::after {
             content: '';
@@ -71,18 +58,19 @@
             border-style: solid;
             z-index: 10;
         }
+
         #camera-container::before {
             top: 12px; left: 12px;
             border-width: 3px 0 0 3px;
             border-radius: 4px 0 0 0;
         }
+
         #camera-container::after {
             bottom: 12px; right: 12px;
             border-width: 0 3px 3px 0;
             border-radius: 0 0 4px 0;
         }
 
-        /* Flash overlay */
         #flash {
             position: absolute;
             inset: 0;
@@ -93,7 +81,6 @@
             transition: opacity 0.05s;
         }
 
-        /* ── Contrôles caméra ── */
         .controls {
             display: flex;
             align-items: center;
@@ -102,7 +89,6 @@
             width: 100%;
         }
 
-        /* Bouton capture */
         #btn-capture {
             width: 72px;
             height: 72px;
@@ -129,7 +115,6 @@
             background: #e0e0e0;
         }
 
-        /* Bouton retourner caméra */
         #btn-flip {
             width: 48px;
             height: 48px;
@@ -145,14 +130,10 @@
             justify-content: center;
         }
 
-        #btn-flip:hover {
-            background: rgba(255,255,255,0.2);
-        }
+        #btn-flip:hover { background: rgba(255,255,255,0.2); }
 
-        /* ── Canvas caché ── */
         #canvas { display: none; }
 
-        /* ── Modal de nommage ── */
         #modal-overlay {
             display: none;
             position: fixed;
@@ -164,9 +145,7 @@
             backdrop-filter: blur(4px);
         }
 
-        #modal-overlay.show {
-            display: flex;
-        }
+        #modal-overlay.show { display: flex; }
 
         #modal {
             background: #1a1a2e;
@@ -187,7 +166,6 @@
             to   { transform: scale(1);    opacity: 1; }
         }
 
-        /* Aperçu dans la modal */
         #preview-img {
             width: 100%;
             border-radius: 12px;
@@ -195,18 +173,9 @@
             max-height: 220px;
         }
 
-        #modal h2 {
-            font-size: 1.1rem;
-            color: #ccc;
-            text-align: center;
-        }
+        #modal h2 { font-size: 1.1rem; color: #ccc; text-align: center; }
 
-        /* Champ de texte */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
 
         .input-group label {
             font-size: 0.85rem;
@@ -225,9 +194,7 @@
             transition: border-color 0.2s;
         }
 
-        .input-wrapper:focus-within {
-            border-color: #00d4ff;
-        }
+        .input-wrapper:focus-within { border-color: #00d4ff; }
 
         #filename-input {
             flex: 1;
@@ -247,11 +214,7 @@
             white-space: nowrap;
         }
 
-        /* Boutons modal */
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-        }
+        .modal-actions { display: flex; gap: 12px; }
 
         .btn {
             flex: 1;
@@ -265,22 +228,11 @@
         }
 
         .btn:active { transform: scale(0.97); }
-
-        .btn-cancel {
-            background: #2a2a2a;
-            color: #aaa;
-        }
-
+        .btn-cancel { background: #2a2a2a; color: #aaa; }
         .btn-cancel:hover { background: #333; }
-
-        .btn-save {
-            background: linear-gradient(135deg, #00d4ff, #0080ff);
-            color: #fff;
-        }
-
+        .btn-save { background: linear-gradient(135deg, #00d4ff, #0080ff); color: #fff; }
         .btn-save:hover { opacity: 0.9; }
 
-        /* ── Toast ── */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -303,7 +255,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* ── Message erreur caméra ── */
         #no-camera {
             display: none;
             text-align: center;
@@ -311,7 +262,6 @@
             padding: 40px 20px;
         }
 
-        /* ── Responsive ── */
         @media (max-width: 360px) {
             h1 { font-size: 1.4rem; }
             #btn-capture { width: 64px; height: 64px; }
@@ -337,11 +287,10 @@
     <div class="controls">
         <button id="btn-flip" title="Retourner la caméra">🔄</button>
         <button id="btn-capture" title="Prendre une photo"></button>
-        <div style="width:48px"></div> <!-- spacer symétrique -->
+        <div style="width:48px"></div>
     </div>
 </div>
 
-<!-- Modal de nommage -->
 <div id="modal-overlay">
     <div id="modal">
         <h2>📝 Nommer la photo</h2>
@@ -367,22 +316,15 @@
     </div>
 </div>
 
-<!-- Toast notification -->
 <div id="toast"></div>
 
 <script>
-    /* ═══════════════════════════════════════════
-       État de l'application
-    ═══════════════════════════════════════════ */
     const state = {
         stream: null,
-        facingMode: 'environment', // 'user' = front | 'environment' = rear
+        facingMode: 'environment',
         capturedDataURL: null,
     };
 
-    /* ═══════════════════════════════════════════
-       Éléments DOM
-    ═══════════════════════════════════════════ */
     const video         = document.getElementById('video');
     const canvas        = document.getElementById('canvas');
     const flash         = document.getElementById('flash');
@@ -396,11 +338,8 @@
     const toast         = document.getElementById('toast');
     const noCameraMsg   = document.getElementById('no-camera');
 
-    /* ═══════════════════════════════════════════
-       Démarrer la caméra
-    ═══════════════════════════════════════════ */
+    /* ── Démarrer la caméra ── */
     async function startCamera(facingMode = 'environment') {
-        // Arrêter le flux précédent si existant
         if (state.stream) {
             state.stream.getTracks().forEach(t => t.stop());
         }
@@ -409,8 +348,8 @@
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode,
-                    width:  { ideal: 1920 },
-                    height: { ideal: 1080 },
+                    width:  { ideal: 4096 },
+                    height: { ideal: 2160 },
                 },
                 audio: false,
             });
@@ -427,12 +366,13 @@
         }
     }
 
-    /* ═══════════════════════════════════════════
-       Capturer la photo
-    ═══════════════════════════════════════════ */
+    /* ── Capturer la photo en vraie résolution ── */
     function capturePhoto() {
-        const w = video.videoWidth;
-        const h = video.videoHeight;
+        const track    = state.stream?.getVideoTracks()[0];
+        const settings = track?.getSettings();
+
+        const w = settings?.width  || video.videoWidth;
+        const h = settings?.height || video.videoHeight;
 
         if (!w || !h) {
             showToast('⚠️ La caméra n\'est pas encore prête');
@@ -444,7 +384,6 @@
 
         const ctx = canvas.getContext('2d');
 
-        // Miroir si caméra frontale
         if (state.facingMode === 'user') {
             ctx.translate(w, 0);
             ctx.scale(-1, 1);
@@ -452,30 +391,23 @@
 
         ctx.drawImage(video, 0, 0, w, h);
 
-        state.capturedDataURL = canvas.toDataURL('image/jpeg', 0.92);
+        // Qualité 0.95 pour réduire la compression
+        state.capturedDataURL = canvas.toDataURL('image/jpeg', 0.95);
 
-        // Animation flash
         triggerFlash();
-
-        // Ouvrir la modal
         openModal();
     }
 
-    /* ═══════════════════════════════════════════
-       Animation flash
-    ═══════════════════════════════════════════ */
+    /* ── Flash ── */
     function triggerFlash() {
         flash.style.opacity = '1';
         setTimeout(() => { flash.style.opacity = '0'; }, 120);
     }
 
-    /* ═══════════════════════════════════════════
-       Gestion de la modal
-    ═══════════════════════════════════════════ */
+    /* ── Modal ── */
     function openModal() {
         previewImg.src = state.capturedDataURL;
 
-        // Nom par défaut basé sur la date
         const now  = new Date();
         const pad  = n => String(n).padStart(2, '0');
         const defaultName = `photo_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
@@ -483,7 +415,6 @@
         filenameInput.value = defaultName;
         modalOverlay.classList.add('show');
 
-        // Focus + sélection du nom
         setTimeout(() => {
             filenameInput.focus();
             filenameInput.select();
@@ -496,20 +427,15 @@
         previewImg.src = '';
     }
 
-    /* ═══════════════════════════════════════════
-       Enregistrer la photo
-    ═══════════════════════════════════════════ */
+    /* ── Enregistrer ── */
     function savePhoto() {
         let name = filenameInput.value.trim();
 
         if (!name) {
             filenameInput.focus();
-            filenameInput.style.borderColor = '#ff6b6b';
-            setTimeout(() => filenameInput.style.borderColor = '', 800);
             return;
         }
 
-        // Nettoyer les caractères interdits dans un nom de fichier
         name = name.replace(/[\\/:*?"<>|]/g, '_');
 
         const link = document.createElement('a');
@@ -521,51 +447,40 @@
         showToast(`✅ Photo enregistrée : ${name}.jpg`);
     }
 
-    /* ═══════════════════════════════════════════
-       Toast notification
-    ═══════════════════════════════════════════ */
+    /* ── Toast ── */
     let toastTimer = null;
 
     function showToast(message, duration = 3000) {
         toast.textContent = message;
         toast.classList.add('show');
-
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
             toast.classList.remove('show');
         }, duration);
     }
 
-    /* ═══════════════════════════════════════════
-       Retourner la caméra (avant / arrière)
-    ═══════════════════════════════════════════ */
+    /* ── Flip caméra ── */
     function flipCamera() {
         state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
         startCamera(state.facingMode);
     }
 
-    /* ═══════════════════════════════════════════
-       Événements
-    ═══════════════════════════════════════════ */
+    /* ── Événements ── */
     btnCapture.addEventListener('click', capturePhoto);
     btnFlip.addEventListener('click', flipCamera);
     btnSave.addEventListener('click', savePhoto);
     btnCancel.addEventListener('click', closeModal);
 
-    // Fermer la modal en cliquant sur l'overlay
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) closeModal();
     });
 
-    // Enregistrer avec Entrée
     filenameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') savePhoto();
         if (e.key === 'Escape') closeModal();
     });
 
-    /* ═══════════════════════════════════════════
-       Lancement
-    ═══════════════════════════════════════════ */
+    /* ── Lancement ── */
     startCamera(state.facingMode);
 </script>
 
